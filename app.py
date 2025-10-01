@@ -8,8 +8,6 @@ from wtforms import StringField, PasswordField, SubmitField, TextAreaField, Sele
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
-from pyngrok import ngrok
-import atexit
 import os
 from dotenv import load_dotenv
 
@@ -45,27 +43,6 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-# ----------------------
-# NGROK SETUP
-# ----------------------
-
-
-def start_ngrok():
-    ngrok.set_auth_token("33EmVTIsgtnC1Oei0uV4io9d7Cx_2cSbCPQ85y4fwDSDPnLhb")
-    try:
-        ngrok.kill()
-    except:
-        pass
-    public_url = ngrok.connect(5000, bind_tls=True)
-    print(f" * ngrok tunnel: {public_url}")
-    atexit.register(lambda: ngrok.kill())
-    return public_url
-
-
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
-    public_url = start_ngrok()
-    print(f" * Application is publicly available at: {public_url}")
 
 # ======================
 # DATABASE MODELS
@@ -146,7 +123,7 @@ class LoginForm(FlaskForm):
 
 class ItemForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
-    description = TextAreaField('Description')  # optional
+    description = TextAreaField('Description')
     category = SelectField('Category', choices=[(
         'Electronics', 'Electronics'), ('Clothes', 'Clothes'), ('Other', 'Other')])
     status = SelectField('Status', choices=[
@@ -253,10 +230,7 @@ def report():
         )
         db.session.add(new_item)
         db.session.commit()
-        print(
-            f"[DEBUG] New item reported: {new_item.title} by user {current_user.username}")
         flash('Item reported successfully!', 'success')
-        # Redirect to dashboard after report
         return redirect(url_for('dashboard'))
 
     items = Item.query.filter_by(user_id=current_user.id).order_by(
@@ -311,4 +285,5 @@ def test_notifications():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, use_reloader=False)
+    # Updated for Render deployment
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
