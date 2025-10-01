@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">👤 Your Profile</h1>
+
+    <div class="row justify-content-center">
+        <!-- Profile picture -->
+        <div class="col-md-4 text-center mb-4">
+            <img src="{{ url_for('static', filename='images/profile_pics/' + current_user.profile_pic) }}"
+                class="img-fluid rounded-circle shadow-sm" alt="Profile Picture" style="max-width:200px;">
+        </div>
+
+        <!-- Profile form -->
+        <div class="col-md-6">
+            <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control", placeholder="Enter your username") }}
+                    {% for error in form.username.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                    {% for error in form.email.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.profile_pic.label(class="form-label") }}
+                    {{ form.profile_pic(class="form-control") }}
+                    <small class="form-text text-muted">Optional: Upload a new profile picture</small>
+                </div>
+
+                {{ form.submit(class="btn btn-primary w-100") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

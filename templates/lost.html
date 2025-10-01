@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">🔍 Lost Items</h1>
+
+    {% if items %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for item in items %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if item.photo %}
+                <img src="{{ url_for('static', filename='images/' + item.photo) }}" class="card-img-top"
+                    alt="Item Photo" style="max-height:200px; object-fit:cover;">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/default.png') }}" class="card-img-top"
+                    alt="Default Photo" style="max-height:200px; object-fit:cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.title }} <span class="badge bg-danger">{{ item.status }}</span></h5>
+                    <p class="card-text"><strong>Category:</strong> {{ item.category }}</p>
+                    <p class="card-text"><strong>Location:</strong> {{ item.location }}</p>
+                    <p class="card-text"><small class="text-muted">Reported by {{ item.user.username }} on {{
+                            item.created_at.strftime('%d %b %Y, %H:%M') }}</small></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        No lost items reported yet.
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+    <div class="text-center mt-4">
+        <a href="{{ url_for('report') }}" class="btn btn-primary">Report a Lost Item</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

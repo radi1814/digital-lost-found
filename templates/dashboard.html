@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Welcome, {{ current_user.username }}</h2>
+
+    <div class="row mt-3">
+        <!-- Your Items -->
+        <div class="col-md-8">
+            <h4>Your Items</h4>
+
+            <!-- Filter Tabs -->
+            <ul class="nav nav-tabs mb-3" id="itemFilterTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all"
+                        type="button" role="tab">All</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="lost-tab" data-bs-toggle="tab" data-bs-target="#lost" type="button"
+                        role="tab">Lost</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="found-tab" data-bs-toggle="tab" data-bs-target="#found" type="button"
+                        role="tab">Found</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- All Items -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel">
+                    {% set items_to_show = items %}
+                    {% include 'items_table.html' %}
+                </div>
+
+                <!-- Lost Items -->
+                <div class="tab-pane fade" id="lost" role="tabpanel">
+                    {% set items_to_show = items | selectattr('status', 'equalto', 'Lost') | list %}
+                    {% include 'items_table.html' %}
+                </div>
+
+                <!-- Found Items -->
+                <div class="tab-pane fade" id="found" role="tabpanel">
+                    {% set items_to_show = items | selectattr('status', 'equalto', 'Found') | list %}
+                    {% include 'items_table.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-md-4">
+            <h4>Notifications</h4>
+            <div class="card shadow-sm mb-3" style="max-height: 400px; overflow-y: auto;">
+                <ul class="list-group list-group-flush">
+                    {% for note in notifications %}
+                    <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
+                        {{ note.message }}
+                        <br>
+                        <small class="text-muted">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </li>
+                    {% endfor %}
+                    {% if notifications|length == 0 %}
+                    <li class="list-group-item">No notifications yet.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="text-end">
+                <a href="{{ url_for('notifications') }}" class="btn btn-sm btn-primary">View All Notifications</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

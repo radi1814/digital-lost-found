@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4 shadow-sm">
+                <h1 class="text-center mb-4">📝 Report a Lost or Found Item</h1>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <!-- Report Form -->
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control", placeholder="e.g., Black Wallet") }}
+                        {% for error in form.title.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.category.label(class="form-label") }}
+                        {{ form.category(class="form-select") }}
+                        {% for error in form.category.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.status.label(class="form-label") }}
+                        {{ form.status(class="form-select") }}
+                        {% for error in form.status.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.location.label(class="form-label") }}
+                        {{ form.location(class="form-control", placeholder="Where you lost/found it") }}
+                        {% for error in form.location.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", placeholder="Optional details") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.photo.label(class="form-label") }}
+                        {{ form.photo(class="form-control") }}
+                        <small class="form-text text-muted">Optional: Upload a photo of the item</small>
+                    </div>
+
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User's Reported Items -->
+    {% if items %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h2 class="mb-3">Your Reported Items</h2>
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th>Photo</th>
+                        <th>Date Reported</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.status }}</td>
+                        <td>{{ item.location }}</td>
+                        <td>
+                            {% if item.photo %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ item.photo) }}" alt="Item photo"
+                                width="80">
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

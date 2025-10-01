@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Your Dashboard, {{ current_user.username }}</h2>
+
+    <div class="row">
+        <!-- Your Items -->
+        <div class="col-md-8">
+            <h4>Your Reported Items</h4>
+            {% if items %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Location</th>
+                            <th>Reported On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>
+                                {% if item.status == 'Lost' %}
+                                <span class="badge bg-danger">{{ item.status }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.location }}</td>
+                            <td>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">You have not reported any items yet.</div>
+            {% endif %}
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-md-4">
+            <h4>Recent Notifications</h4>
+            <div class="card shadow-sm mb-3" style="max-height: 400px; overflow-y: auto;">
+                <ul class="list-group list-group-flush">
+                    {% for note in notifications %}
+                    <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
+                        {{ note.message }}
+                        <br>
+                        <small class="text-muted">{{ note.created_at.strftime('%d %b %Y, %H:%M') }}</small>
+                    </li>
+                    {% endfor %}
+                    {% if notifications|length == 0 %}
+                    <li class="list-group-item text-center">No notifications yet.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="text-center">
+                <a href="{{ url_for('notifications') }}" class="btn btn-primary btn-sm">View All Notifications</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
