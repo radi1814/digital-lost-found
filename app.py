@@ -24,7 +24,6 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key_here')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ----------------------
@@ -63,7 +62,8 @@ class User(UserMixin, db.Model):
         "Notification", backref="receiver", lazy=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(
+            password, method='pbkdf2:sha256', salt_length=16)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -134,17 +134,6 @@ class ItemForm(FlaskForm):
     submit = SubmitField('Report Item')
 
 # ======================
-# LOGIN REQUIREMENT
-# ======================
-
-
-@app.before_request
-def require_login():
-    allowed_routes = ['login', 'register', 'static']
-    if request.endpoint not in allowed_routes and not current_user.is_authenticated:
-        return redirect(url_for('login'))
-
-# ======================
 # ROUTES
 # ======================
 
@@ -152,13 +141,6 @@ def require_login():
 @app.route('/')
 def home():
     return redirect(url_for('dashboard') if current_user.is_authenticated else url_for('login'))
-
-
-@app.route('/index')
-@login_required
-def index():
-    items = Item.query.order_by(Item.created_at.desc()).limit(10).all()
-    return render_template('index.html', items=items)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -183,7 +165,8 @@ def login():
             login_user(user)
             flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
-        flash('Invalid email or password', 'danger')
+        else:
+            flash('Invalid email or password', 'danger')
     return render_template('login.html', form=form)
 
 
@@ -198,14 +181,11 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    items = Item.query.filter_by(user_id=current_user.id).all()
+    items = Item.query.filter_by(user_id=current_user.id).order_by(
+        Item.created_at.desc()).all()
     notifications = Notification.query.filter_by(receiver_id=current_user.id).order_by(
         Notification.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', items=items, notifications=notifications)
-
-# ======================
-# REPORT ROUTE
-# ======================
 
 
 @app.route('/report', methods=['GET', 'POST'])
@@ -215,9 +195,10 @@ def report():
     if form.validate_on_submit():
         photo_filename = None
         if form.photo.data:
-            photo_filename = secure_filename(form.photo.data.filename)
+            filename = f"{current_user.id}_{int(datetime.utcnow().timestamp())}_{secure_filename(form.photo.data.filename)}"
             form.photo.data.save(os.path.join(
-                app.config['UPLOAD_FOLDER'], photo_filename))
+                app.config['UPLOAD_FOLDER'], filename))
+            photo_filename = filename
 
         new_item = Item(
             title=form.title.data,
@@ -236,10 +217,6 @@ def report():
     items = Item.query.filter_by(user_id=current_user.id).order_by(
         Item.created_at.desc()).all()
     return render_template('report.html', form=form, items=items)
-
-# ======================
-# NOTIFICATIONS
-# ======================
 
 
 @app.route('/notifications/mark_read/<int:note_id>', methods=['POST'])
@@ -261,22 +238,37 @@ def notifications():
         receiver_id=current_user.id).order_by(Notification.created_at.desc()).all()
     return render_template('notifications.html', notifications=notifications)
 
+# ----------------------
+# Filter Items (Lost/Found)
+# ----------------------
+
 
 @app.route('/items/<status>')
 @login_required
 def filter_items(status):
     if status not in ['Lost', 'Found']:
         flash('Invalid status', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
+
     items = Item.query.filter_by(status=status).order_by(
         Item.created_at.desc()).all()
     template = 'lost.html' if status == 'Lost' else 'found.html'
-    return render_template(template, items=items)
+    # ✅ pass status
+    return render_template(template, items=items, status=status)
+
+# ======================
+# ERROR HANDLERS
+# ======================
 
 
-@app.route('/test_notifications')
-def test_notifications():
-    return render_template('notifications.html', items=[], notifications=[])
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template('500.html'), 500
 
 
 # ======================
@@ -285,5 +277,4 @@ def test_notifications():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    # Updated for Render deployment
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)

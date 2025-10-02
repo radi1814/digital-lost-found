@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-5" style="max-width: 400px;">
     <h2 class="text-center mb-4">Login</h2>
 
-    <form method="POST">
+    <form method="POST" novalidate>
         {{ form.hidden_tag() }}
 
+        <!-- Email Field -->
         <div class="mb-3">
             {{ form.email.label(class="form-label") }}
             {{ form.email(class="form-control", placeholder="Enter your email") }}
@@ -14,6 +16,7 @@
             {% endfor %}
         </div>
 
+        <!-- Password Field -->
         <div class="mb-3">
             {{ form.password.label(class="form-label") }}
             {{ form.password(class="form-control", placeholder="Enter your password") }}
@@ -22,6 +25,7 @@
             {% endfor %}
         </div>
 
+        <!-- Submit Button -->
         {{ form.submit(class="btn btn-primary w-100") }}
     </form>
 

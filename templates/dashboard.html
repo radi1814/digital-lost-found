@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+
+{% block title %}Dashboard | Lost & Found{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Welcome, {{ current_user.username }}</h2>
@@ -10,38 +13,21 @@
 
             <!-- Filter Tabs -->
             <ul class="nav nav-tabs mb-3" id="itemFilterTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all"
-                        type="button" role="tab">All</button>
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
+                        data-bs-target="#all">All</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#lost">Lost</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="lost-tab" data-bs-toggle="tab" data-bs-target="#lost" type="button"
-                        role="tab">Lost</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="found-tab" data-bs-toggle="tab" data-bs-target="#found" type="button"
-                        role="tab">Found</button>
-                </li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                        data-bs-target="#found">Found</button></li>
             </ul>
 
             <div class="tab-content">
-                <!-- All Items -->
-                <div class="tab-pane fade show active" id="all" role="tabpanel">
-                    {% set items_to_show = items %}
-                    {% include 'items_table.html' %}
-                </div>
-
-                <!-- Lost Items -->
-                <div class="tab-pane fade" id="lost" role="tabpanel">
-                    {% set items_to_show = items | selectattr('status', 'equalto', 'Lost') | list %}
-                    {% include 'items_table.html' %}
-                </div>
-
-                <!-- Found Items -->
-                <div class="tab-pane fade" id="found" role="tabpanel">
-                    {% set items_to_show = items | selectattr('status', 'equalto', 'Found') | list %}
-                    {% include 'items_table.html' %}
-                </div>
+                <div class="tab-pane fade show active" id="all">{% set items_to_show = items %}{% include
+                    'items_table.html' %}</div>
+                <div class="tab-pane fade" id="lost">{% set items_to_show = items |
+                    selectattr('status','equalto','Lost') | list %}{% include 'items_table.html' %}</div>
+                <div class="tab-pane fade" id="found">{% set items_to_show = items |
+                    selectattr('status','equalto','Found') | list %}{% include 'items_table.html' %}</div>
             </div>
         </div>
 
@@ -53,13 +39,17 @@
                     {% for note in notifications %}
                     <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
                         {{ note.message }}
+                        {% if not note.is_read %}
+                        <span class="badge bg-warning text-dark">New</span>
+                        {% endif %}
                         <br>
                         <small class="text-muted">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        <button class="btn btn-sm btn-outline-success float-end mark-read-btn"
+                            data-id="{{ note.id }}">Mark as Read</button>
                     </li>
-                    {% endfor %}
-                    {% if notifications|length == 0 %}
+                    {% else %}
                     <li class="list-group-item">No notifications yet.</li>
-                    {% endif %}
+                    {% endfor %}
                 </ul>
             </div>
             <div class="text-end">
@@ -68,4 +58,14 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll(".mark-read-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            fetch(`/notifications/mark_read/${btn.dataset.id}`, { method: "POST" })
+                .then(r => r.json())
+                .then(data => { if (data.success) btn.closest("li").classList.remove("list-group-item-warning"); });
+        });
+    });
+</script>
 {% endblock %}
