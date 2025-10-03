@@ -12,7 +12,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in items %}
+            {% for item in items_to_show %}
             <tr>
                 <td>{{ item.title }}</td>
                 <td>
@@ -26,6 +26,10 @@
                 <td>{{ item.location }}</td>
                 <td>{{ item.user.username }}</td>
                 <td>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No items reported yet.</td>
             </tr>
             {% endfor %}
         </tbody>

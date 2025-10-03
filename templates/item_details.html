@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.title }} | Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        {% if item.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" class="card-img-top"
+            alt="{{ item.title }} photo" style="max-height:400px; object-fit:cover;">
+        {% else %}
+        <img src="{{ url_for('static', filename='images/default.png') }}" class="card-img-top" alt="Default Photo"
+            style="max-height:400px; object-fit:cover;">
+        {% endif %}
+
+        <div class="card-body">
+            <h2 class="card-title">{{ item.title }}
+                <span class="badge {% if item.status == 'Lost' %}bg-danger{% else %}bg-success{% endif %}">
+                    {{ item.status }}
+                </span>
+            </h2>
+            <p class="card-text"><strong>Category:</strong> {{ item.category }}</p>
+            <p class="card-text"><strong>Location:</strong> {{ item.location }}</p>
+            <p class="card-text"><strong>Description:</strong> {{ item.description or 'No description provided.' }}</p>
+            <p class="card-text">
+                <small class="text-muted">
+                    Reported by {{ item.user.username }} on {{ item.created_at.strftime('%d %b %Y, %H:%M') }}
+                </small>
+            </p>
+        </div>
+
+        <div class="card-footer text-end">
+            <a href="{{ url_for('lost_items') if item.status=='Lost' else url_for('found_items') }}"
+                class="btn btn-secondary">
+                Back to {{ item.status }} Items
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

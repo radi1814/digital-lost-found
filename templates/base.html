@@ -35,15 +35,13 @@
                     </li>
                     <!-- Dropdown for Lost & Found -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint == 'filter_items' %}active{% endif %}"
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['lost_items', 'found_items'] %}active{% endif %}"
                             href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Items
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('filter_items', status='Lost') }}">Lost</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('filter_items', status='Found') }}">Found</a>
-                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('lost_items') }}">Lost</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('found_items') }}">Found</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">

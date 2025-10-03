@@ -11,24 +11,8 @@
         <div class="col-md-8">
             <h4>Your Items</h4>
 
-            <!-- Filter Tabs -->
-            <ul class="nav nav-tabs mb-3" id="itemFilterTabs" role="tablist">
-                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
-                        data-bs-target="#all">All</button></li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#lost">Lost</button>
-                </li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#found">Found</button></li>
-            </ul>
-
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="all">{% set items_to_show = items %}{% include
-                    'items_table.html' %}</div>
-                <div class="tab-pane fade" id="lost">{% set items_to_show = items |
-                    selectattr('status','equalto','Lost') | list %}{% include 'items_table.html' %}</div>
-                <div class="tab-pane fade" id="found">{% set items_to_show = items |
-                    selectattr('status','equalto','Found') | list %}{% include 'items_table.html' %}</div>
-            </div>
+            {% set items_to_show = all_items %}
+            {% include 'items_table.html' %}
         </div>
 
         <!-- Notifications -->
@@ -64,7 +48,9 @@
         btn.addEventListener("click", () => {
             fetch(`/notifications/mark_read/${btn.dataset.id}`, { method: "POST" })
                 .then(r => r.json())
-                .then(data => { if (data.success) btn.closest("li").classList.remove("list-group-item-warning"); });
+                .then(data => {
+                    if (data.success) btn.closest("li").classList.remove("list-group-item-warning");
+                });
         });
     });
 </script>
