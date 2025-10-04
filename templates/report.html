@@ -26,7 +26,8 @@
                     <!-- Title -->
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
-                        {{ form.title(class="form-control", placeholder="e.g., Black Wallet") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""),
+                        placeholder="e.g., Black Wallet") }}
                         {% for error in form.title.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -35,7 +36,7 @@
                     <!-- Category -->
                     <div class="mb-3">
                         {{ form.category.label(class="form-label") }}
-                        {{ form.category(class="form-select") }}
+                        {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
                         {% for error in form.category.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -44,7 +45,7 @@
                     <!-- Status -->
                     <div class="mb-3">
                         {{ form.status.label(class="form-label") }}
-                        {{ form.status(class="form-select") }}
+                        {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
                         {% for error in form.status.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -53,7 +54,8 @@
                     <!-- Location -->
                     <div class="mb-3">
                         {{ form.location.label(class="form-label") }}
-                        {{ form.location(class="form-control", placeholder="Where you lost/found it") }}
+                        {{ form.location(class="form-control" + (" is-invalid" if form.location.errors else ""),
+                        placeholder="Where you lost/found it") }}
                         {% for error in form.location.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -116,7 +118,7 @@
                                 N/A
                                 {% endif %}
                             </td>
-                            <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

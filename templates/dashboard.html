@@ -20,20 +20,23 @@
             <h4>Notifications</h4>
             <div class="card shadow-sm mb-3" style="max-height: 400px; overflow-y: auto;">
                 <ul class="list-group list-group-flush">
+                    {% if notifications %}
                     {% for note in notifications %}
                     <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
                         {{ note.message }}
                         {% if not note.is_read %}
-                        <span class="badge bg-warning text-dark">New</span>
+                        <span class="badge bg-warning text-dark ms-2">New</span>
                         {% endif %}
                         <br>
-                        <small class="text-muted">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        <small class="text-muted">{{ note.created_at.strftime('%Y-%m-%d %H:%M') if note.created_at else
+                            '-' }}</small>
                         <button class="btn btn-sm btn-outline-success float-end mark-read-btn"
                             data-id="{{ note.id }}">Mark as Read</button>
                     </li>
+                    {% endfor %}
                     {% else %}
                     <li class="list-group-item">No notifications yet.</li>
-                    {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
             <div class="text-end">
@@ -44,14 +47,17 @@
 </div>
 
 <script>
-    document.querySelectorAll(".mark-read-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            fetch(`/notifications/mark_read/${btn.dataset.id}`, { method: "POST" })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) btn.closest("li").classList.remove("list-group-item-warning");
-                });
+    const buttons = document.querySelectorAll(".mark-read-btn");
+    if (buttons.length) {
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                fetch(`/notifications/mark_read/${btn.dataset.id}`, { method: "POST" })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) btn.closest("li").classList.remove("list-group-item-warning");
+                    });
+            });
         });
-    });
+    }
 </script>
 {% endblock %}

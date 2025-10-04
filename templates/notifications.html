@@ -12,7 +12,8 @@
                 <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
                     {{ note.message }}
                     <br>
-                    <small class="text-muted">{{ note.created_at.strftime('%d %b %Y, %H:%M') }}</small>
+                    <small class="text-muted">{{ note.created_at.strftime('%d %b %Y, %H:%M') if note.created_at else '-'
+                        }}</small>
                 </li>
                 {% endfor %}
                 {% else %}

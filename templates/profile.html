@@ -4,10 +4,16 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">👤 Your Profile</h1>
 
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-info text-center">{{ messages[0] }}</div>
+    {% endif %}
+    {% endwith %}
+
     <div class="row justify-content-center">
         <!-- Profile Picture -->
         <div class="col-md-4 text-center mb-4">
-            <img src="{{ url_for('static', filename='images/profile_pics/' + current_user.profile_pic) }}"
+            <img src="{{ url_for('static', filename='images/profile_pics/' + (current_user.profile_pic or 'default.png')) }}"
                 class="img-fluid rounded-circle shadow-sm" alt="Profile Picture" style="max-width: 200px;">
         </div>
 
@@ -19,7 +25,8 @@
                 <!-- Username Field -->
                 <div class="mb-3">
                     {{ form.username.label(class="form-label") }}
-                    {{ form.username(class="form-control", placeholder="Enter your username") }}
+                    {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                    placeholder="Enter your username") }}
                     {% for error in form.username.errors %}
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}
@@ -28,7 +35,8 @@
                 <!-- Email Field -->
                 <div class="mb-3">
                     {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                    placeholder="Enter your email") }}
                     {% for error in form.email.errors %}
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}

@@ -4,13 +4,20 @@
 <div class="container mt-5" style="max-width: 400px;">
     <h2 class="text-center mb-4">Login</h2>
 
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-danger">{{ messages[0] }}</div>
+    {% endif %}
+    {% endwith %}
+
     <form method="POST" novalidate>
         {{ form.hidden_tag() }}
 
         <!-- Email Field -->
         <div class="mb-3">
             {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control", placeholder="Enter your email") }}
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your
+            email") }}
             {% for error in form.email.errors %}
             <div class="text-danger small">{{ error }}</div>
             {% endfor %}
@@ -19,7 +26,8 @@
         <!-- Password Field -->
         <div class="mb-3">
             {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control", placeholder="Enter your password") }}
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter
+            your password") }}
             {% for error in form.password.errors %}
             <div class="text-danger small">{{ error }}</div>
             {% endfor %}

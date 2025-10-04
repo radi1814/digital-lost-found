@@ -7,13 +7,20 @@
             <div class="card p-4 shadow-sm">
                 <h2 class="text-center mb-4">Register</h2>
 
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div class="alert alert-info">{{ messages[0] }}</div>
+                {% endif %}
+                {% endwith %}
+
                 <form method="POST" novalidate>
                     {{ form.hidden_tag() }}
 
                     <!-- Username Field -->
                     <div class="mb-3">
                         {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control", placeholder="Enter your username") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                        placeholder="Enter your username") }}
                         {% for error in form.username.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -22,7 +29,8 @@
                     <!-- Email Field -->
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control", placeholder="Enter your email") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                        placeholder="Enter your email") }}
                         {% for error in form.email.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -31,7 +39,8 @@
                     <!-- Password Field -->
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control", placeholder="Enter your password") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                        placeholder="Enter your password") }}
                         {% for error in form.password.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
@@ -40,7 +49,8 @@
                     <!-- Confirm Password Field -->
                     <div class="mb-3">
                         {{ form.confirm_password.label(class="form-label") }}
-                        {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors
+                        else ""), placeholder="Confirm your password") }}
                         {% for error in form.confirm_password.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}

@@ -24,8 +24,8 @@
                 </td>
                 <td>{{ item.category }}</td>
                 <td>{{ item.location }}</td>
-                <td>{{ item.user.username }}</td>
-                <td>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                <td>{{ item.user.username if item.user else 'Anonymous' }}</td>
+                <td>{{ item.created_at.strftime('%d %b %Y, %H:%M') if item.created_at else '-' }}</td>
             </tr>
             {% else %}
             <tr>

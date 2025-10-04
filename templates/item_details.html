@@ -5,14 +5,11 @@
 {% block content %}
 <div class="container mt-4">
     <div class="card shadow-sm">
-        {% if item.photo %}
-        <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" class="card-img-top"
+        <!-- Item Photo -->
+        <img src="{{ url_for('static', filename='uploads/' + (item.photo or 'default.png')) }}" class="card-img-top"
             alt="{{ item.title }} photo" style="max-height:400px; object-fit:cover;">
-        {% else %}
-        <img src="{{ url_for('static', filename='images/default.png') }}" class="card-img-top" alt="Default Photo"
-            style="max-height:400px; object-fit:cover;">
-        {% endif %}
 
+        <!-- Item Info -->
         <div class="card-body">
             <h2 class="card-title">{{ item.title }}
                 <span class="badge {% if item.status == 'Lost' %}bg-danger{% else %}bg-success{% endif %}">
@@ -29,6 +26,7 @@
             </p>
         </div>
 
+        <!-- Back Button -->
         <div class="card-footer text-end">
             <a href="{{ url_for('lost_items') if item.status=='Lost' else url_for('found_items') }}"
                 class="btn btn-secondary">
