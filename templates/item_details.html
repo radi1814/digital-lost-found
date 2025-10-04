@@ -5,9 +5,17 @@
 {% block content %}
 <div class="container mt-4">
     <div class="card shadow-sm">
+
         <!-- Item Photo -->
-        <img src="{{ url_for('static', filename='uploads/' + (item.photo or 'default.png')) }}" class="card-img-top"
+        {% if item.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" class="card-img-top"
             alt="{{ item.title }} photo" style="max-height:400px; object-fit:cover;">
+        {% else %}
+        <div class="text-center text-muted"
+            style="height:400px; line-height:400px; border:1px solid #ddd; font-size:16px;">
+            No Image Provided
+        </div>
+        {% endif %}
 
         <!-- Item Info -->
         <div class="card-body">
@@ -21,7 +29,8 @@
             <p class="card-text"><strong>Description:</strong> {{ item.description or 'No description provided.' }}</p>
             <p class="card-text">
                 <small class="text-muted">
-                    Reported by {{ item.user.username }} on {{ item.created_at.strftime('%d %b %Y, %H:%M') }}
+                    Reported by {{ item.user.username if item.user else 'Anonymous' }} on
+                    {{ item.created_at.strftime('%d %b %Y, %H:%M') if item.created_at else '-' }}
                 </small>
             </p>
         </div>

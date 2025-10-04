@@ -9,9 +9,17 @@
         {% for item in items %}
         <div class="col">
             <div class="card h-100 shadow-sm">
+
                 <!-- Item Photo -->
-                <img src="{{ url_for('static', filename='uploads/' + (item.photo or 'default.png')) }}"
-                    class="card-img-top" alt="{{ item.title }} photo" style="max-height:200px; object-fit:cover;">
+                {% if item.photo %}
+                <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" class="card-img-top"
+                    alt="{{ item.title }} photo" style="max-height:200px; object-fit:cover;">
+                {% else %}
+                <div class="text-center text-muted"
+                    style="height:200px; line-height:200px; border:1px solid #ddd; font-size:14px;">
+                    No Image Provided
+                </div>
+                {% endif %}
 
                 <!-- Item Info -->
                 <div class="card-body">

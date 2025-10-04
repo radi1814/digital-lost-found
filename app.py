@@ -25,13 +25,12 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key_here')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32 MB
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ----------------------
 # DATABASE AND MODELS
 # ----------------------
-
 db.init_app(app)
 
 # ----------------------
@@ -162,8 +161,9 @@ def report():
         photo_filename = None
         if form.photo.data:
             filename = f"{current_user.id}_{int(datetime.utcnow().timestamp())}_{secure_filename(form.photo.data.filename)}"
-            form.photo.data.save(os.path.join(
-                app.config['UPLOAD_FOLDER'], filename))
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            form.photo.data.save(path)
+            print(f"[DEBUG] Saved image at: {path}")
             photo_filename = filename
 
         new_item = Item(
@@ -253,6 +253,12 @@ def internal_error(e):
         return render_template('500.html'), 500
     except:
         return "500 - Internal Server Error", 500
+
+
+@app.errorhandler(413)
+def file_too_large(e):
+    flash("File is too large! Maximum size is 32 MB.", "danger")
+    return redirect(request.referrer or url_for('report'))
 
 
 # ======================
