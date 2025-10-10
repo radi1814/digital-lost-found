@@ -30,8 +30,8 @@
                             href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'report' %}active{% endif %}"
-                            href="{{ url_for('report') }}">Report Item</a>
+                        <a class="nav-link {% if request.endpoint == 'report_item' %}active{% endif %}"
+                            href="{{ url_for('report_item') }}">Report Item</a>
                     </li>
                     <!-- Dropdown for Lost & Found -->
                     <li class="nav-item dropdown">
