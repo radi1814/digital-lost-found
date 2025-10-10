@@ -6,7 +6,7 @@ import traceback
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
@@ -79,19 +79,14 @@ class LoginForm(FlaskForm):
 class ItemForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description')
-    category = SelectField('Category', choices=[
-        ('Electronics', 'Electronics'),
-        ('Clothes', 'Clothes'),
-        ('Other', 'Other')
-    ])
+    category = SelectField('Category', choices=[(
+        'Electronics', 'Electronics'), ('Clothes', 'Clothes'), ('Other', 'Other')])
     status = SelectField('Status', choices=[
                          ('Lost', 'Lost'), ('Found', 'Found')])
     location = StringField('Location', validators=[DataRequired()])
     photo = FileField('Photo', validators=[FileAllowed(
         ['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Report Item')
-
-# Forgot/Reset password forms
 
 
 class ForgotPasswordForm(FlaskForm):
@@ -137,13 +132,22 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password.', 'danger')
+        try:
+            user = User.query.filter_by(email=form.email.data).first()
+            if not user:
+                flash('No account found with that email.', 'danger')
+                return render_template('login.html', form=form)
+
+            if user.check_password(form.password.data):
+                login_user(user)
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Incorrect password.', 'danger')
+        except Exception as e:
+            # Print traceback in console
+            traceback.print_exc()
+            flash('An error occurred during login. Please try again.', 'danger')
     return render_template('login.html', form=form)
 
 
@@ -165,7 +169,6 @@ def forgot_password():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            # Simple version - redirect to reset page directly
             flash('Please reset your password below.', 'info')
             return redirect(url_for('reset_password', user_id=user.id))
         else:
@@ -266,11 +269,10 @@ def server_error(e):
     traceback.print_exc()
     return render_template('500.html'), 500
 
+
 # ----------------------
 # RUN APP
 # ----------------------
-
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
