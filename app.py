@@ -195,11 +195,12 @@ def reset_password(user_id):
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    items = Item.query.order_by(Item.created_at.desc()).limit(5).all()
+    all_items = Item.query.order_by(Item.created_at.desc()).limit(
+        5).all()  # Or remove limit for all items
     notifications = Notification.query.filter_by(
         receiver_id=current_user.id, is_read=False
     ).order_by(Notification.created_at.desc()).limit(5).all()
-    return render_template('dashboard.html', items=items, notifications=notifications)
+    return render_template('dashboard.html', all_items=all_items, notifications=notifications)
 
 
 @app.route('/report', methods=['GET', 'POST'])
