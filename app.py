@@ -196,8 +196,9 @@ def reset_password(user_id):
 @login_required
 def dashboard():
     items = Item.query.order_by(Item.created_at.desc()).limit(5).all()
-    notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(
-        Notification.created_at.desc()).limit(5).all()
+    notifications = Notification.query.filter_by(
+        receiver_id=current_user.id, is_read=False
+    ).order_by(Notification.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', items=items, notifications=notifications)
 
 
@@ -250,8 +251,9 @@ def item_detail(item_id):
 @app.route('/notifications')
 @login_required
 def notifications():
-    notes = Notification.query.filter_by(user_id=current_user.id).order_by(
-        Notification.created_at.desc()).all()
+    notes = Notification.query.filter_by(
+        receiver_id=current_user.id
+    ).order_by(Notification.created_at.desc()).all()
     return render_template('notifications.html', notifications=notes)
 
 # ----------------------
