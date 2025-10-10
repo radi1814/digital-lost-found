@@ -243,9 +243,9 @@ def found_items():
 
 
 @app.route('/item/<int:item_id>')
-def item_detail(item_id):
+def item_details(item_id):
     item = Item.query.get_or_404(item_id)
-    return render_template('item_detail.html', item=item)
+    return render_template('item_details.html', item=item)
 
 
 @app.route('/notifications')
