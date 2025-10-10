@@ -16,8 +16,8 @@
         <!-- Email Field -->
         <div class="mb-3">
             {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your
-            email") }}
+            {{ form.email(class="form-control{% if form.email.errors %} is-invalid{% endif %}",
+            placeholder="Enter your email") }}
             {% for error in form.email.errors %}
             <div class="text-danger small">{{ error }}</div>
             {% endfor %}
@@ -26,15 +26,17 @@
         <!-- Password Field -->
         <div class="mb-3">
             {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter
-            your password") }}
+            {{ form.password(class="form-control{% if form.password.errors %} is-invalid{% endif %}",
+            placeholder="Enter your password") }}
             {% for error in form.password.errors %}
             <div class="text-danger small">{{ error }}</div>
             {% endfor %}
         </div>
 
         <!-- Submit Button -->
-        {{ form.submit(class="btn btn-primary w-100") }}
+        <div class="d-grid">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
     </form>
 
     <!-- Forgot Password -->
@@ -42,7 +44,8 @@
         <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
     </p>
 
-    <p class="mt-3 text-center">
+    <!-- Register Link -->
+    <p class="mt-2 text-center">
         Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
     </p>
 </div>
