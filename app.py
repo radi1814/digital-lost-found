@@ -6,6 +6,7 @@ import traceback
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
@@ -78,14 +79,32 @@ class LoginForm(FlaskForm):
 class ItemForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description')
-    category = SelectField('Category', choices=[(
-        'Electronics', 'Electronics'), ('Clothes', 'Clothes'), ('Other', 'Other')])
+    category = SelectField('Category', choices=[
+        ('Electronics', 'Electronics'),
+        ('Clothes', 'Clothes'),
+        ('Other', 'Other')
+    ])
     status = SelectField('Status', choices=[
                          ('Lost', 'Lost'), ('Found', 'Found')])
     location = StringField('Location', validators=[DataRequired()])
     photo = FileField('Photo', validators=[FileAllowed(
         ['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Report Item')
+
+# Forgot/Reset password forms
+
+
+class ForgotPasswordForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[
+                             DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[
+                                     DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 # ======================
 # ROUTES
@@ -123,7 +142,8 @@ def login():
             login_user(user)
             flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
-        flash('Invalid email or password', 'danger')
+        else:
+            flash('Invalid email or password.', 'danger')
     return render_template('login.html', form=form)
 
 
@@ -131,140 +151,127 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Logged out successfully', 'info')
+    flash('You have logged out.', 'info')
     return redirect(url_for('login'))
 
 # ----------------------
-# DASHBOARD
+# PASSWORD RESET
+# ----------------------
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            # Simple version - redirect to reset page directly
+            flash('Please reset your password below.', 'info')
+            return redirect(url_for('reset_password', user_id=user.id))
+        else:
+            flash('No account found with that email.', 'danger')
+    return render_template('forgot_password.html', form=form)
+
+
+@app.route('/reset_password/<int:user_id>', methods=['GET', 'POST'])
+def reset_password(user_id):
+    form = ResetPasswordForm()
+    user = User.query.get_or_404(user_id)
+    if form.validate_on_submit():
+        user.password = generate_password_hash(form.password.data)
+        db.session.commit()
+        flash('Your password has been updated. Please log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)
+
+# ----------------------
+# DASHBOARD & ITEMS
 # ----------------------
 
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    all_items = Item.query.filter_by(
-        user_id=current_user.id).order_by(Item.created_at.desc()).all()
-    notifications = Notification.query.filter_by(receiver_id=current_user.id).order_by(
+    items = Item.query.order_by(Item.created_at.desc()).limit(5).all()
+    notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(
         Notification.created_at.desc()).limit(5).all()
-    return render_template('dashboard.html', all_items=all_items, notifications=notifications)
-
-# ----------------------
-# REPORT ITEM
-# ----------------------
+    return render_template('dashboard.html', items=items, notifications=notifications)
 
 
 @app.route('/report', methods=['GET', 'POST'])
 @login_required
-def report():
+def report_item():
     form = ItemForm()
     if form.validate_on_submit():
-        photo_filename = None
+        filename = None
         if form.photo.data:
-            filename = f"{current_user.id}_{int(datetime.utcnow().timestamp())}_{secure_filename(form.photo.data.filename)}"
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            form.photo.data.save(path)
-            print(f"[DEBUG] Saved image at: {path}")
-            photo_filename = filename
-
-        new_item = Item(
+            filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join(
+                app.config['UPLOAD_FOLDER'], filename))
+        item = Item(
             title=form.title.data,
             description=form.description.data,
             category=form.category.data,
             status=form.status.data,
             location=form.location.data,
-            photo=photo_filename,
+            photo=filename,
             user_id=current_user.id
         )
-        db.session.add(new_item)
+        db.session.add(item)
         db.session.commit()
         flash('Item reported successfully!', 'success')
         return redirect(url_for('dashboard'))
-
-    items = Item.query.filter_by(user_id=current_user.id).order_by(
-        Item.created_at.desc()).all()
-    return render_template('report.html', form=form, items=items)
-
-# ----------------------
-# LOST AND FOUND
-# ----------------------
+    return render_template('report_item.html', form=form)
 
 
 @app.route('/lost')
 def lost_items():
     items = Item.query.filter_by(status='Lost').order_by(
         Item.created_at.desc()).all()
-    return render_template('lost.html', items=items, status='Lost')
+    return render_template('lost.html', items=items)
 
 
 @app.route('/found')
 def found_items():
     items = Item.query.filter_by(status='Found').order_by(
         Item.created_at.desc()).all()
-    return render_template('found.html', items=items, status='Found')
+    return render_template('found.html', items=items)
 
 
 @app.route('/item/<int:item_id>')
-def item_details(item_id):
+def item_detail(item_id):
     item = Item.query.get_or_404(item_id)
-    return render_template('item_details.html', item=item)
-
-# ----------------------
-# NOTIFICATIONS
-# ----------------------
+    return render_template('item_detail.html', item=item)
 
 
 @app.route('/notifications')
 @login_required
 def notifications():
-    notifications = Notification.query.filter_by(
-        receiver_id=current_user.id).order_by(Notification.created_at.desc()).all()
-    return render_template('notifications.html', notifications=notifications)
+    notes = Notification.query.filter_by(user_id=current_user.id).order_by(
+        Notification.created_at.desc()).all()
+    return render_template('notifications.html', notifications=notes)
 
-
-@app.route('/notifications/mark_read/<int:note_id>', methods=['POST'])
-@login_required
-def mark_notification_read(note_id):
-    note = Notification.query.filter_by(
-        id=note_id, receiver_id=current_user.id).first()
-    if note:
-        note.is_read = True
-        db.session.commit()
-        return jsonify({'success': True})
-    return jsonify({'success': False}), 404
-
-# ======================
+# ----------------------
 # ERROR HANDLERS
-# ======================
+# ----------------------
 
 
 @app.errorhandler(404)
 def page_not_found(e):
-    try:
-        return render_template('404.html'), 404
-    except:
-        return "404 - Page Not Found", 404
+    return render_template('404.html'), 404
 
 
 @app.errorhandler(500)
-def internal_error(e):
-    print("---- 500 ERROR ----")
-    print(traceback.format_exc())
-    try:
-        return render_template('500.html'), 500
-    except:
-        return "500 - Internal Server Error", 500
+def server_error(e):
+    traceback.print_exc()
+    return render_template('500.html'), 500
 
-
-@app.errorhandler(413)
-def file_too_large(e):
-    flash("File is too large! Maximum size is 32 MB.", "danger")
-    return redirect(request.referrer or url_for('report'))
-
-
-# ======================
+# ----------------------
 # RUN APP
-# ======================
+# ----------------------
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(debug=True)
