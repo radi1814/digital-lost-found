@@ -10,12 +10,12 @@
                 <th>Location</th>
                 <th>Reported By</th>
                 <th>Reported At</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             {% for item in items_to_show %}
             <tr>
-                <!-- Photo Column -->
                 <td>
                     {% if item.photo %}
                     <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Item photo"
@@ -27,11 +27,7 @@
                     </div>
                     {% endif %}
                 </td>
-
-                <!-- Title -->
                 <td>{{ item.title }}</td>
-
-                <!-- Status -->
                 <td>
                     {% if item.status == 'Lost' %}
                     <span class="badge bg-danger">{{ item.status }}</span>
@@ -39,22 +35,33 @@
                     <span class="badge bg-success">{{ item.status }}</span>
                     {% endif %}
                 </td>
-
-                <!-- Category -->
                 <td>{{ item.category }}</td>
-
-                <!-- Location -->
                 <td>{{ item.location }}</td>
-
-                <!-- Reported By -->
                 <td>{{ item.user.username if item.user else 'Anonymous' }}</td>
-
-                <!-- Reported At -->
                 <td>{{ item.created_at.strftime('%d %b %Y, %H:%M') if item.created_at else '-' }}</td>
+
+                <!-- Actions -->
+                <td>
+                    <div class="d-flex gap-2">
+                        <!-- View -->
+                        <a href="{{ url_for('item_details', item_id=item.id) }}" class="btn btn-sm btn-info">View</a>
+
+                        <!-- Edit -->
+                        {% if current_user.is_authenticated and item.user_id == current_user.id %}
+                        <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-sm btn-warning">Edit</a>
+
+                        <!-- Delete -->
+                        <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST"
+                            onsubmit="return confirm('Are you sure you want to delete this item?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" class="text-center">No items reported yet.</td>
+                <td colspan="8" class="text-center">No items reported yet.</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -232,6 +232,40 @@ def report_item():
     return render_template('report_item.html', form=form)
 
 
+@app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_item(item_id):
+    item = Item.query.filter_by(
+        id=item_id, user_id=current_user.id).first_or_404()
+    form = ItemForm(obj=item)
+
+    if form.validate_on_submit():
+        item.title = form.title.data
+        item.description = form.description.data
+        item.category = form.category.data
+        item.status = form.status.data
+        item.location = form.location.data
+
+        # If user uploads new photo, replace the old one
+        if form.photo.data:
+            filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join(
+                app.config['UPLOAD_FOLDER'], filename))
+            # delete old photo if exists
+            if item.photo:
+                old_path = os.path.join(
+                    app.config['UPLOAD_FOLDER'], item.photo)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            item.photo = filename
+
+        db.session.commit()
+        flash('Item updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('edit_item.html', form=form, item=item)
+
+
 @app.route('/lost')
 def lost_items():
     items = Item.query.filter_by(status='Lost').order_by(
@@ -250,6 +284,27 @@ def found_items():
 def item_details(item_id):
     item = Item.query.get_or_404(item_id)
     return render_template('item_details.html', item=item)
+
+
+@app.route('/delete_item/<int:item_id>', methods=['POST'])
+@login_required
+def delete_item(item_id):
+    # Find the item belonging to the current user
+    item = Item.query.filter_by(
+        id=item_id, user_id=current_user.id).first_or_404()
+
+    # Delete the photo file if it exists
+    if item.photo:
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], item.photo)
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+
+    # Delete the item from the database
+    db.session.delete(item)
+    db.session.commit()
+
+    flash('Item deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/notifications')

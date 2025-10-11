@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Item | Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <h2 class="text-center mb-4">Edit Item</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=3) }}
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                {{ form.category.label(class="form-label") }}
+                {{ form.category(class="form-select") }}
+            </div>
+            <div class="col-md-6">
+                {{ form.status.label(class="form-label") }}
+                {{ form.status(class="form-select") }}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.location.label(class="form-label") }}
+            {{ form.location(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.photo.label(class="form-label") }}
+            {{ form.photo(class="form-control") }}
+            {% if item.photo %}
+            <div class="mt-2">
+                <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Current Photo"
+                    style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                <small class="text-muted d-block mt-1">Current Photo</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="d-grid">
+            {{ form.submit(class="btn btn-primary", value="Update Item") }}
+        </div>
+    </form>
+
+    <div class="text-center mt-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
